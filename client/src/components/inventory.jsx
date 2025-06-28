@@ -12,7 +12,7 @@ const Inventory = () => {
   // Fetch inventory items from the backend
   const getInventory = async () => {
     try {
-      const response = await fetch("http://localhost:3000/inventory", {
+      const response = await fetch("http://localhost:3100/inventory", {
         method: "GET",
       });
       const data = await response.json();
@@ -30,7 +30,7 @@ const Inventory = () => {
   // Create a new inventory item
   const addInventory = async () => {
     try {
-      const response = await fetch("http://localhost:3000/inventory", {
+      const response = await fetch("http://localhost:3100/inventory", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -48,7 +48,7 @@ const Inventory = () => {
   // Delete an inventory item
   const deleteInventory = async (id) => {
     try {
-      await fetch(`http://localhost:3000/inventory/${id}`, {
+      await fetch(`http://localhost:3100/inventory/${id}`, {
         method: "DELETE",
       });
       setInventories(inventories.filter((item) => item.inventory_id !== id));
@@ -60,7 +60,7 @@ const Inventory = () => {
   // Update an inventory item
   const updateInventory = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/inventory/${editId}`, {
+      const response = await fetch(`http://localhost:3100/inventory/${editId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

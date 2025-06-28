@@ -1,6 +1,6 @@
 # Inventory Management System
 
-An inventory management system built to help businesses track and manage their stock. It includes features for adding, updating, and deleting inventory items, as well as tracking stock levels and generating reports.
+An eenbeen inventory management system built to help businesses track and manage their stock. It includes features for adding, updating, and deleting inventory items, as well as tracking stock levels and generating reports.
 
 ## Features
 - Add, update, and delete inventory items
@@ -17,7 +17,7 @@ An inventory management system built to help businesses track and manage their s
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/Mwangobora/Inventory_management_system.git
+   git clone https://github.com/ayoolaeni/eenbeen_inventory_management_system.git
 
 
    Navigate to the project folder:

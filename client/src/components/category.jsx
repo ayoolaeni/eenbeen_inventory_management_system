@@ -8,7 +8,7 @@ const Categories = () => {
     });
     const [editCategory, setEditCategory] = useState(null);
 
-    const API_URL = "http://localhost:3000/category";
+    const API_URL = "http://localhost:3100/category";
 
     // Fetch all categories
     const fetchCategories = async () => {
@@ -119,6 +119,7 @@ const Categories = () => {
                 <table className="w-full table-auto border-collapse">
                     <thead>
                         <tr className="bg-gray-100 text-gray-700">
+                            <th className="py-3 px-4 border-b">Category ID</th>
                             <th className="py-3 px-4 border-b">Category Name</th>
                             <th className="py-3 px-4 border-b">Description</th>
                             <th className="py-3 px-4 border-b">Actions</th>
@@ -127,6 +128,7 @@ const Categories = () => {
                     <tbody>
                         {categories.map((category) => (
                             <tr key={category.category_id} className="hover:bg-gray-50">
+                                <td className="py-3 px-4 border-b">{category.category_id}</td>
                                 <td className="py-3 px-4 border-b">{category.category_name}</td>
                                 <td className="py-3 px-4 border-b">{category.description}</td>
                                 <td className="py-3 px-4 border-b">

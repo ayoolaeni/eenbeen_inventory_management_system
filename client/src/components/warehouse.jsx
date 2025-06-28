@@ -8,7 +8,7 @@ const Warehouses = () => {
     });
     const [editWarehouse, setEditWarehouse] = useState(null);
 
-    const API_URL = 'http://localhost:3000/warehouses';
+    const API_URL = 'http://localhost:3100/warehouses';
 
     // Fetch all warehouses
     const fetchWarehouses = async () => {

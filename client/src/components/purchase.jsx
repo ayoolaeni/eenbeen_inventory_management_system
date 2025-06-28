@@ -15,7 +15,7 @@ const Purchase = () => {
   // Fetch all purchases
   const getPurchases = async () => {
     try {
-      const response = await fetch("http://localhost:3000/purchases");
+      const response = await fetch("http://localhost:3100/purchases");
       const data = await response.json();
       setPurchases(data);
     } catch (err) {
@@ -30,8 +30,8 @@ const Purchase = () => {
     try {
       const method = editId ? "PUT" : "POST";
       const url = editId
-        ? `http://localhost:3000/purchases/${editId}`
-        : "http://localhost:3000/purchases";
+        ? `http://localhost:3100/purchases/${editId}`
+        : "http://localhost:3100/purchases";
       const response = await fetch(url, {
         method: method,
         headers: { "Content-Type": "application/json" },
@@ -57,7 +57,7 @@ const Purchase = () => {
   // Delete a purchase
   const deletePurchase = async (id) => {
     try {
-      await fetch(`http://localhost:3000/purchases/${id}`, {
+      await fetch(`http://localhost:3100/purchases/${id}`, {
         method: "DELETE",
       });
       setPurchases(purchases.filter((purchase) => purchase.purchase_id !== id));

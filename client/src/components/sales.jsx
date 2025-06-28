@@ -13,7 +13,7 @@ const Sales = () => {
     // Fetch all sales
     const fetchSales = async () => {
         try {
-            const response = await fetch('http://localhost:3000/sales');
+            const response = await fetch('http://localhost:3100/sales');
             if (!response.ok) throw new Error('Failed to fetch sales');
             const data = await response.json();
             setSales(data);
@@ -31,14 +31,16 @@ const Sales = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Create or Update Sale
+    // ✅ FIXED: Create or Update Sale
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const method = editSale ? 'PUT' : 'POST';
-            const endpoint = editSale ? `/sales/${editSale.sales_id}` : '/sales';
+            const endpoint = editSale
+                ? `http://localhost:3100/sales/${editSale.sales_id}`
+                : 'http://localhost:3100/sales';
 
-            const response = await fetch('http://localhost:3000/sales', {
+            const response = await fetch(endpoint, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json'
@@ -58,7 +60,7 @@ const Sales = () => {
     // Delete a Sale
     const handleDelete = async (id) => {
         try {
-            const response = await fetch(`http://localhost:3000/sales/${id}`, {
+            const response = await fetch(`http://localhost:3100/sales/${id}`, {
                 method: 'DELETE'
             });
 

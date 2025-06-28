@@ -60,7 +60,7 @@ const Sidebar = ({ onLogout }) => {
           </li>
           <li>
             <Link
-              to="/warehouse-management"
+              to="/purchase-management" 
               className="flex items-center p-2 hover:bg-gray-700 rounded transition duration-300 ease-in-out"
             >
               <i className="bi bi-house-door mr-2"></i> Purchase Management
@@ -68,7 +68,7 @@ const Sidebar = ({ onLogout }) => {
           </li>
           <li>
             <Link
-              to="/inventory-management"
+              to="/sales-management"
               className="flex items-center p-2 hover:bg-gray-700 rounded transition duration-300 ease-in-out"
             >
               <i className="bi bi-stack mr-2"></i>  Sales Management
@@ -84,7 +84,7 @@ const Sidebar = ({ onLogout }) => {
           </li>
           <li>
             <Link
-              to="/purchase-management"
+              to="/warehouse-management"
               className="flex items-center p-2 hover:bg-gray-700 rounded transition duration-300 ease-in-out"
             >
               <i className="bi bi-cart mr-2"></i> Warehouse Management
@@ -92,7 +92,7 @@ const Sidebar = ({ onLogout }) => {
           </li>
           <li>
             <Link
-              to="/sales-management"
+              to="/inventory-management" 
               className="flex items-center p-2 hover:bg-gray-700 rounded transition duration-300 ease-in-out"
             >
               <i className="bi bi-cash-stack mr-2"></i> Inventory Management

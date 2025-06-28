@@ -10,7 +10,7 @@ const Customer = () => {
     // Fetch all customers
     const fetchCustomers = async () => {
         try {
-            const response = await fetch('http://localhost:3000/customer', {
+            const response = await fetch('http://localhost:3100/customer', {
                 method: "GET"
             });
 
@@ -39,7 +39,7 @@ const Customer = () => {
         e.preventDefault();
         try {
             const body = { customer_name, contact_info, address }
-            const response = await fetch('http://localhost:3000/customer', {
+            const response = await fetch('http://localhost:3100/customer', {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'
@@ -61,7 +61,7 @@ const Customer = () => {
     // Delete a Customer
     const handleDelete = async (id) => {
         try {
-            const response = await fetch(`http://localhost:3000/customer/${id}`, {
+            const response = await fetch(`http://localhost:3100/customer/${id}`, {
                 method: 'DELETE'
             });
 

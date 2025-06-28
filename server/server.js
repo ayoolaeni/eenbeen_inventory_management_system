@@ -444,7 +444,15 @@ app.get('/purchases/:id', async (req, res) => {
 // Create a new purchase
 app.post('/purchases', async (req, res) => {
     try {
+        console.log("Incoming purchase request:", req.body); // debug log
+
         const { product_id, customer_id, quantity, total_cost } = req.body;
+
+        // Make sure all values are present
+        if (!product_id || !customer_id || !quantity || !total_cost) {
+            return res.status(400).json({ error: "All fields are required" });
+        }
+
         const result = await pool.query(
             `INSERT INTO purchase (product_id, customer_id, quantity, purchase_date, total_cost)
              VALUES ($1, $2, $3, NOW(), $4) RETURNING *`,
@@ -452,9 +460,16 @@ app.post('/purchases', async (req, res) => {
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {
+        console.error("❌ Error in POST /purchases:", err); // better log
         res.status(500).json({ error: err.message });
     }
 });
+
+
+
+
+
+
 
 // Update a purchase
 app.put('/purchases/:id', async (req, res) => {
@@ -562,7 +577,7 @@ app.delete('/sales/:id', async (req, res) => {
 });
 
 //running the server
-const port = 3000;
+const port = 3100;
 app.listen(port,()=>console.log(`server is running in port ${port}`))
 
 

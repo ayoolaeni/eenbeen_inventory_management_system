@@ -9,7 +9,7 @@ const Products = () => {
     });
     const [editProduct, setEditProduct] = useState(null);
 
-    const API_URL = 'http://localhost:3000/product';
+    const API_URL = 'http://localhost:3100/product';
 
     // Fetch all products
     const fetchProducts = async () => {
@@ -130,15 +130,17 @@ const Products = () => {
                     <table className="min-w-full table-auto bg-white shadow-md rounded-lg overflow-hidden">
                         <thead className="bg-gray-100">
                             <tr>
+                                <th className="px-6 py-3 text-left text-lg font-semibold text-gray-700">Product ID</th>
                                 <th className="px-6 py-3 text-left text-lg font-semibold text-gray-700">Product Name</th>
                                 <th className="px-6 py-3 text-left text-lg font-semibold text-gray-700">Description</th>
-                                <th className="px-6 py-3 text-left text-lg font-semibold text-gray-700">Price ($)</th>
+                                <th className="px-6 py-3 text-left text-lg font-semibold text-gray-700">Price (₦)</th>
                                 <th className="px-6 py-3 text-left text-lg font-semibold text-gray-700">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {products.map((product) => (
                                 <tr key={product.product_id} className="border-t">
+                                    <td className="px-6 py-4 text-gray-700">{product.product_id}</td>
                                     <td className="px-6 py-4 text-gray-700">{product.product_name}</td>
                                     <td className="px-6 py-4 text-gray-700">{product.description}</td>
                                     <td className="px-6 py-4 text-gray-700">{product.price}</td>
