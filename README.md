@@ -1,4 +1,4 @@
-# Inventory Management System
+<img width="932" alt="image" src="https://github.com/user-attachments/assets/0fd61d26-88c4-43e1-b448-0b31107b778d" /># Inventory Management System
 
 An eenbeen inventory management system built to help businesses track and manage their stock. It includes features for adding, updating, and deleting inventory items, as well as tracking stock levels and generating reports.
 
