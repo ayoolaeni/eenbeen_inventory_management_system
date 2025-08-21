@@ -1,187 +1,145 @@
-import React, { Fragment, useEffect, useState } from "react";
+
+import React, { Fragment, useEffect, useState, useCallback } from "react";
 
 const Inventory = () => {
   const [inventories, setInventories] = useState([]);
-  const [formData, setFormData] = useState({
-    product_id: "",
-    quantity: "",
-    warehouse_id: "",
-  });
-  const [editId, setEditId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [filterWarehouse, setFilterWarehouse] = useState("all");
+  const [warehouses, setWarehouses] = useState([]);
 
-  // Fetch inventory items from the backend
-  const getInventory = async () => {
+  // ✅ Wrap with useCallback so it's stable across renders
+  const getInventory = useCallback(
+    async (warehouseId = filterWarehouse) => {
+      try {
+        setLoading(true);
+
+        const url =
+          warehouseId === "all"
+            ? "http://localhost:3100/inventory"
+            : `http://localhost:3100/inventory/${warehouseId}`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        // Ensure it's always an array so .map() never crashes
+        setInventories(Array.isArray(data) ? data : [data]);
+      } catch (err) {
+        console.error("Error fetching inventory:", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [filterWarehouse] // ✅ re-create only when filter changes
+  );
+
+  const getWarehouses = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:3100/inventory", {
-        method: "GET",
-      });
-      const data = await response.json();
-      setInventories(data);
+      const res = await fetch("http://localhost:3100/warehouses");
+      const data = await res.json();
+      setWarehouses(data);
     } catch (err) {
-      console.error("Error fetching inventory:", err.message);
+      console.error("Error fetching warehouses:", err);
     }
-  };
+  }, []);
 
-  // Handle form data changes
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  // Create a new inventory item
-  const addInventory = async () => {
-    try {
-      const response = await fetch("http://localhost:3100/inventory", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      const newInventory = await response.json();
-      setInventories([...inventories, newInventory]);
-      setFormData({ product_id: "", quantity: "", warehouse_id: "" });
-    } catch (err) {
-      console.error("Error adding inventory:", err.message);
-    }
-  };
-
-  // Delete an inventory item
-  const deleteInventory = async (id) => {
-    try {
-      await fetch(`http://localhost:3100/inventory/${id}`, {
-        method: "DELETE",
-      });
-      setInventories(inventories.filter((item) => item.inventory_id !== id));
-    } catch (err) {
-      console.error("Error deleting inventory:", err.message);
-    }
-  };
-
-  // Update an inventory item
-  const updateInventory = async () => {
-    try {
-      const response = await fetch(`http://localhost:3100/inventory/${editId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      const updatedItem = await response.json();
-      setInventories(
-        inventories.map((item) =>
-          item.inventory_id === editId ? updatedItem : item
-        )
-      );
-      setEditId(null);
-      setFormData({ product_id: "", quantity: "", warehouse_id: "" });
-    } catch (err) {
-      console.error("Error updating inventory:", err.message);
-    }
-  };
-
+  // Initial load + interval refresh
   useEffect(() => {
     getInventory();
-  }, []);
+    getWarehouses();
+
+    const id = setInterval(() => getInventory(), 10000);
+    return () => clearInterval(id);
+  }, [getInventory, getWarehouses]);
+
+  // Re-fetch when warehouse filter changes
+  useEffect(() => {
+    getInventory(filterWarehouse);
+  }, [filterWarehouse, getInventory]);
 
   return (
     <Fragment>
-      <div className="container mt-5">
-        <h1 className="text-center mb-4">Inventory Management</h1>
+      <div className="container mx-auto my-6 px-4">
+        {/* Header + Refresh */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+          <h1 className="text-2xl font-semibold">Inventory Workflow</h1>
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            onClick={() => getInventory(filterWarehouse)}
+            disabled={loading}
+          >
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
 
-        {/* Add/Edit Inventory Form */}
-        <form
-          className="mb-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            editId ? updateInventory() : addInventory();
-          }}
-        >
-          <div className="row g-3">
-            <div className="col-md-3">
-              <input
-                type="text"
-                name="product_id"
-                value={formData.product_id}
-                className="form-control"
-                placeholder="Product ID"
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="col-md-3">
-              <input
-                type="number"
-                name="quantity"
-                value={formData.quantity}
-                className="form-control"
-                placeholder="Quantity"
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="col-md-3">
-              <input
-                type="text"
-                name="warehouse_id"
-                value={formData.warehouse_id}
-                className="form-control"
-                placeholder="Warehouse ID"
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="col-md-3">
-              <button type="submit" className="btn btn-primary w-100">
-                {editId ? "Update" : "Add"}
-              </button>
-            </div>
-          </div>
-        </form>
+        {/* Warehouse Filter */}
+        <div className="flex flex-wrap gap-4 mb-4">
+          <select
+            value={filterWarehouse}
+            onChange={(e) => setFilterWarehouse(e.target.value)}
+            className="px-3 py-2 border rounded"
+          >
+            <option value="all">All Warehouses</option>
+            {warehouses.map((wh) => (
+              <option key={wh.warehouse_id} value={wh.warehouse_id}>
+                {wh.warehouse_name}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Inventory Table */}
-        <table className="table table-striped">
-          <thead>
-            <tr>
-              <th>Inventory ID</th>
-              <th>Product ID</th>
-              <th>Quantity</th>
-              <th>Warehouse ID</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {inventories.map((item) => (
-              <tr key={item.inventory_id}>
-                <td>{item.inventory_id}</td>
-                <td>{item.product_id}</td>
-                <td>{item.quantity}</td>
-                <td>{item.warehouse_id}</td>
-                <td>
-                  <button
-                    className="btn btn-warning btn-sm me-2"
-                    onClick={() => {
-                      setEditId(item.inventory_id);
-                      setFormData({
-                        product_id: item.product_id,
-                        quantity: item.quantity,
-                        warehouse_id: item.warehouse_id,
-                      });
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => deleteInventory(item.inventory_id)}
-                  >
-                    Delete
-                  </button>
-                </td>
+        <div className="overflow-x-auto bg-white shadow rounded">
+          <table className="min-w-full table-auto">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-4 py-2 text-left">#</th>
+                <th className="px-4 py-2 text-left">Product</th>
+                <th className="px-4 py-2 text-left">Warehouse</th>
+                <th className="px-4 py-2 text-left">Quantity</th>
+                <th className="px-4 py-2 text-left">Last Updated</th>
+                <th className="px-4 py-2 text-left">Updated By</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {inventories.length ? (
+                inventories.map((row) => (
+                  <tr
+                    key={row.inventory_id}
+                    className={`border-b ${
+                      row.quantity <= 0 ? "bg-red-50" : "bg-green-50"
+                    }`}
+                  >
+                    <td className="px-4 py-2">{row.inventory_id}</td>
+                    <td className="px-4 py-2">{row.product_name}</td>
+                    <td className="px-4 py-2">{row.warehouse_name}</td>
+                    <td className="px-4 py-2 font-semibold">{row.quantity}</td>
+                    <td className="px-4 py-2">
+                      {row.last_updated
+                        ? new Date(row.last_updated).toLocaleString()
+                        : "-"}
+                    </td>
+                    <td className="px-4 py-2">{row.updated_by || "System"}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-4 py-8 text-center text-gray-500"
+                  >
+                    No inventory yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="text-sm text-gray-500 mt-3">
+          ✅ Purchases increase stock, ❌ Sales decrease stock.
+          <br />
+          Inventory is auto-updated after each transaction.
+        </p>
       </div>
     </Fragment>
   );

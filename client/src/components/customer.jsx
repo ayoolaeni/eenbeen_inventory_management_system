@@ -2,18 +2,17 @@ import React, { useState, useEffect } from 'react';
 
 const Customer = () => {
     const [customers, setCustomers] = useState([]);
-    const [customer_name, setCustomerName] = useState("");
-    const [contact_info, setContactInfo] = useState("");
-    const [address, setAddress] = useState("");
+    const [formData, setFormData] = useState({
+        customer_name: "",
+        contact_info: "",
+        address: ""
+    });
     const [editCustomer, setEditCustomer] = useState(null);
 
     // Fetch all customers
     const fetchCustomers = async () => {
         try {
-            const response = await fetch('http://localhost:3100/customer', {
-                method: "GET"
-            });
-
+            const response = await fetch('http://localhost:3100/customer');
             const data = await response.json();
             setCustomers(data);
         } catch (err) {
@@ -26,33 +25,39 @@ const Customer = () => {
     }, []);
 
     // Handle input changes
-    const handleChangeName = (e) => {
-        setCustomerName(e.target.value)
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
     };
-
-    const handleChangeContact = (e) => setContactInfo(e.target.value)
-
-    const handleChangeAddress = (e) => setAddress(e.target.value)
 
     // Add or Update Customer
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const body = { customer_name, contact_info, address }
-            const response = await fetch('http://localhost:3100/customer', {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            });
-            if (response.ok) {
-                setCustomerName("")
-                setAddress("")
-                setContactInfo("")
-                await fetchCustomers()
+            let response;
+            if (editCustomer) {
+                // Update existing customer
+                response = await fetch(`http://localhost:3100/customer/${editCustomer.customer_id}`, {
+                    method: "PUT",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+            } else {
+                // Add new customer
+                response = await fetch('http://localhost:3100/customer', {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
             }
 
+            if (response.ok) {
+                setFormData({ customer_name: "", contact_info: "", address: "" });
+                setEditCustomer(null);
+                fetchCustomers();
+            }
         } catch (err) {
             console.error('Error submitting customer:', err);
         }
@@ -72,6 +77,16 @@ const Customer = () => {
         }
     };
 
+    // Edit a Customer
+    const handleEdit = (customer) => {
+        setEditCustomer(customer);
+        setFormData({
+            customer_name: customer.customer_name,
+            contact_info: customer.contact_info,
+            address: customer.address
+        });
+    };
+
     return (
         <div className="container mx-auto my-4 p-4">
             <h1 className="text-3xl font-semibold text-center mb-4">Customer Management</h1>
@@ -83,39 +98,36 @@ const Customer = () => {
                 </h3>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label htmlFor="customer_name" className="block text-sm font-medium text-gray-700">Customer Name</label>
+                        <label className="block">Customer Name</label>
                         <input
                             type="text"
-                            id="customer_name"
-                            className="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Enter Customer Name"
-                            value={customer_name}
-                            onChange={handleChangeName}
+                            name="customer_name"
+                            value={formData.customer_name}
+                            onChange={handleChange}
                             required
+                            className="border p-2 w-full"
                         />
                     </div>
                     <div className="mb-4">
-                        <label htmlFor="contact_info" className="block text-sm font-medium text-gray-700">Contact Info</label>
+                        <label className="block">Contact Info</label>
                         <input
                             type="text"
-                            id="contact_info"
-                            className="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Enter Contact Info"
-                            value={contact_info}
-                            onChange={handleChangeContact}
+                            name="contact_info"
+                            value={formData.contact_info}
+                            onChange={handleChange}
                             required
+                            className="border p-2 w-full"
                         />
                     </div>
                     <div className="mb-4">
-                        <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
+                        <label className="block">Address</label>
                         <input
                             type="text"
-                            id="address"
-                            className="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Enter Address"
-                            value={address}
-                            onChange={handleChangeAddress}
+                            name="address"
+                            value={formData.address}
+                            onChange={handleChange}
                             required
+                            className="border p-2 w-full"
                         />
                     </div>
                     <div className="flex justify-between">
@@ -128,6 +140,7 @@ const Customer = () => {
                                 className="bg-gray-400 text-white px-6 py-2 rounded-md hover:bg-gray-500"
                                 onClick={() => {
                                     setEditCustomer(null);
+                                    setFormData({ customer_name: "", contact_info: "", address: "" });
                                 }}
                             >
                                 Cancel
@@ -161,6 +174,7 @@ const Customer = () => {
                                     <td className="p-3">
                                         <button
                                             className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 mr-2"
+                                            onClick={() => handleEdit(customer)}
                                         >
                                             Edit
                                         </button>

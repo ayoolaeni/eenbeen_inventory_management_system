@@ -1,48 +1,72 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './components/dashboard';
 import Admin from './components/admin';
 import Sidebar from './components/navigation';
 import Products from './components/product';
-import Categories from './components/category';
 import Inventory from './components/inventory';
 import Purchase from './components/purchase';
 import Warehouses from './components/warehouse';
 import Sales from './components/sales';
 import Customer from './components/customer';
+import UserManagement from './components/UserManagement'; // ✅ add new page
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [role, setRole] = useState(null); // ✅ store role
 
   // ✅ Check localStorage on page load
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
+    const token = localStorage.getItem('token');
+    const userRole = localStorage.getItem('role');
+    if (token && userRole) {
       setIsAuthenticated(true);
+      setRole(userRole);
     }
   }, []);
 
-  // ✅ Set auth on login
+  // ✅ Set auth + role on login
   const handleLogin = () => {
-    localStorage.setItem('authToken', 'example_token'); // Replace with real token if available
-    setIsAuthenticated(true);
+    const token = localStorage.getItem('token');
+    const userRole = localStorage.getItem('role');
+
+    if (token && userRole) {
+      setIsAuthenticated(true);
+      setRole(userRole);
+    }
   };
 
   // ✅ Remove auth on logout
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
     setIsAuthenticated(false);
+    setRole(null);
+  };
+
+  // ✅ Protect routes by role
+  const PrivateRoute = ({ children, allowedRoles }) => {
+    if (!isAuthenticated) {
+      return <Navigate to="/admin-login" />;
+    }
+    if (allowedRoles && !allowedRoles.includes(role)) {
+      return <Navigate to="/dashboard" />; // redirect if role not allowed
+    }
+    return children;
   };
 
   return (
     <Router>
       <div className="d-flex">
-        {isAuthenticated && <Sidebar onLogout={handleLogout} />}
+        {isAuthenticated && <Sidebar onLogout={handleLogout} role={role} />} 
+        {/* ✅ pass role to sidebar */}
 
         <div className="flex-grow-1 p-3">
           <Routes>
 
-            {/* ✅ If already logged in, redirect from login page to dashboard */}
+            {/* ✅ Login page */}
             <Route
               path="/admin-login"
               element={
@@ -52,41 +76,32 @@ function App() {
               }
             />
 
-            {/* ✅ Protected Routes */}
-            <Route
-              path="/dashboard"
-              element={isAuthenticated ? <Dashboard /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/category-management"
-              element={isAuthenticated ? <Categories /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/products"
-              element={isAuthenticated ? <Products /> : <Navigate to="/admin-login" />}
-            />
+            {/* ✅ Shared routes (admin + sales) */}
+            <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            <Route path="/products" element={<PrivateRoute><Products /></PrivateRoute>} />
+            <Route path="/inventory-management" element={<PrivateRoute><Inventory /></PrivateRoute>} />
+            <Route path="/sales-management" element={<PrivateRoute><Sales /></PrivateRoute>} />
+
+            {/* ✅ Admin-only routes */}
+           
             <Route
               path="/warehouse-management"
-              element={isAuthenticated ? <Warehouses /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/inventory-management"
-              element={isAuthenticated ? <Inventory /> : <Navigate to="/admin-login" />}
+              element={<PrivateRoute allowedRoles={['admin']}><Warehouses /></PrivateRoute>}
             />
             <Route
               path="/customer-management"
-              element={isAuthenticated ? <Customer /> : <Navigate to="/admin-login" />}
+              element={<PrivateRoute allowedRoles={['admin']}><Customer /></PrivateRoute>}
             />
             <Route
               path="/purchase-management"
-              element={isAuthenticated ? <Purchase /> : <Navigate to="/admin-login" />}
+              element={<PrivateRoute allowedRoles={['admin']}><Purchase /></PrivateRoute>}
             />
             <Route
-              path="/sales-management"
-              element={isAuthenticated ? <Sales /> : <Navigate to="/admin-login" />}
+              path="/user-management"
+              element={<PrivateRoute allowedRoles={['admin']}><UserManagement /></PrivateRoute>}
             />
 
-            {/* ✅ Default route: redirect based on login state */}
+            {/* ✅ Default route */}
             <Route
               path="*"
               element={<Navigate to={isAuthenticated ? "/dashboard" : "/admin-login"} />}
@@ -99,3 +114,4 @@ function App() {
 }
 
 export default App;
+

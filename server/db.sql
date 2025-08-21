@@ -1,36 +1,32 @@
-CREATE DATABASE inventory_ms;
-
-CREATE TABLE category (
-    category_id BIGSERIAL PRIMARY KEY,
-    category_name VARCHAR(250) NOT NULL,
-    description VARCHAR(250)
+-- 1. Warehouse
+CREATE TABLE warehouse (
+    warehouse_id BIGSERIAL PRIMARY KEY,
+    warehouse_name VARCHAR(250) NOT NULL,
+    location VARCHAR(250)
 );
 
+-- 2. Product
 CREATE TABLE product (
     product_id BIGSERIAL PRIMARY KEY,
     product_name VARCHAR(250) NOT NULL,
-    category_id BIGINT REFERENCES category(category_id) ON DELETE SET NULL,
     description VARCHAR(250),
-    price FLOAT NOT NULL,
+    price NUMERIC(12,2) NOT NULL,
+    warehouse_id BIGINT REFERENCES warehouse(warehouse_id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
-
-CREATE TABLE warehouse (
-    warehouse_id SERIAL PRIMARY KEY,
-    warehouse_name VARCHAR(250),
-    location VARCHAR(250)
-);
-
+-- 3. Inventory
 CREATE TABLE inventory (
     inventory_id BIGSERIAL PRIMARY KEY,
-    product_id BIGINT REFERENCES product(product_id),
-    quantity FLOAT,
-    warehouse_id INTEGER REFERENCES warehouse(warehouse_id),
-    last_updated TIMESTAMP
+    product_id BIGINT REFERENCES product(product_id) ON DELETE CASCADE,
+    warehouse_id BIGINT REFERENCES warehouse(warehouse_id) ON DELETE CASCADE,
+    quantity INT NOT NULL DEFAULT 0,
+    last_updated TIMESTAMP DEFAULT NOW(),
+    UNIQUE(product_id, warehouse_id)
 );
 
+-- 4. Customer
 CREATE TABLE customer (
     customer_id BIGSERIAL PRIMARY KEY,
     customer_name VARCHAR(250) NOT NULL,
@@ -38,42 +34,62 @@ CREATE TABLE customer (
     address VARCHAR(250)
 );
 
+-- 5. Purchase (buying adds stock)
 CREATE TABLE purchase (
     purchase_id BIGSERIAL PRIMARY KEY,
-    product_id BIGINT REFERENCES product(product_id),
-    customer_id BIGINT REFERENCES customer(customer_id),
-    quantity FLOAT,
-    purchase_date TIMESTAMP,
-    total_cost FLOAT
+    product_id BIGINT REFERENCES product(product_id) ON DELETE CASCADE,
+    vendor_name VARCHAR(255) NOT NULL,
+    customer_id BIGINT REFERENCES customer(customer_id) ON DELETE SET NULL,
+    warehouse_id BIGINT REFERENCES warehouse(warehouse_id) ON DELETE CASCADE,
+    quantity INT NOT NULL,
+    total_cost NUMERIC(12,2) NOT NULL,
+    purchase_date TIMESTAMP DEFAULT NOW()
 );
 
+-- 6. Sales (selling reduces stock)
 CREATE TABLE sales (
     sales_id BIGSERIAL PRIMARY KEY,
-    product_id BIGINT REFERENCES product(product_id),
-    quantity FLOAT,
-    sales_date TIMESTAMP,
-    total_sale FLOAT
+    product_id BIGINT REFERENCES product(product_id) ON DELETE CASCADE,
+    warehouse_id BIGINT REFERENCES warehouse(warehouse_id) ON DELETE CASCADE,
+    quantity INT NOT NULL,
+    total_sale NUMERIC(12,2) NOT NULL,
+    sales_date TIMESTAMP DEFAULT NOW()
 );
 
+-- 7. Users (for login/auth)
+CREATE TABLE users (
+  user_id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role VARCHAR(20) NOT NULL DEFAULT 'sales', -- 'admin' or 'sales'
+  created_at TIMESTAMP DEFAULT NOW()
+);
 
-INSERT INTO category (category_name, description) 
-VALUES ('Electronics', 'Devices and gadgets');
+-- ============================================
+-- Sample Data (consistent with new schema)
+-- ============================================
 
-INSERT INTO product (product_name, description, price, created_at, updated_at, category_id) 
-VALUES ('Smartphone', 'Latest model smartphone', 699.99, NOW(), NOW(), 1);
+-- Warehouse
+INSERT INTO warehouse (warehouse_name, location) VALUES
+('Main Warehouse', 'Ipaja');
 
-INSERT INTO warehouse (warehouse_name, location) 
-VALUES ('Main Warehouse', 'ipagala');
+-- Product
+INSERT INTO product (product_name, description, price, warehouse_id)
+VALUES ('Smartphone', 'Latest model smartphone', 699.99, 1);
 
-INSERT INTO inventory (product_id, quantity, warehouse_id, last_updated) 
-VALUES (1, 100, 1, NOW());
+-- Inventory
+INSERT INTO inventory (product_id, warehouse_id, quantity)
+VALUES (1, 1, 100);
 
-INSERT INTO customer (customer_name, contact_info, address) 
-VALUES ('francis israel', 'francis@example.com', '456 ipagala dodoma');
+-- Customer
+INSERT INTO customer (customer_name, contact_info, address) VALUES
+('Francis Israel', 'francis@example.com', '456 Unilag, Lagos State');
 
-INSERT INTO purchase (product_id, customer_id, quantity, purchase_date, total_cost) 
-VALUES (1, 1, 2, NOW(), 12345);
+-- Purchase
+INSERT INTO purchase (product_id, vendor_name, customer_id, warehouse_id, quantity, total_cost)
+VALUES (1, 'TechVendor Ltd', 1, 1, 5, 3500);
 
-INSERT INTO sales (product_id, quantity, sales_date, total_sale) 
-VALUES (1, 10, NOW(), 123456);
-
+-- Sales
+INSERT INTO sales (product_id, warehouse_id, quantity, total_sale)
+VALUES (1, 1, 2, 1399.98);
